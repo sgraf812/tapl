@@ -7,7 +7,7 @@ import Bound
 import Syntax
 
 -- prop> whnf e == Just v ==> isValue v
-whnf :: Expr b -> Maybe (Expr b)
+whnf :: Expr ty b -> Maybe (Expr ty b)
 whnf = \case
   e@Var{} -> Nothing -- or maybe Just e?
   e@Lam{} -> Just e
@@ -15,7 +15,7 @@ whnf = \case
   e@False_{} -> Just e
   e@Zero{} -> Just e
   App f a -> whnf f >>= \case
-    Lam b body -> whnf (instantiate1 a body)
+    Lam _ _ body -> whnf (instantiate1 a body)
     _ -> Nothing
   Succ n -> whnf n >>= \case
     e@Succ{} -> Just (Succ e)
@@ -34,7 +34,7 @@ whnf = \case
     False_ -> whnf e
     _ -> Nothing
 
-nf :: Expr b -> Maybe (Expr b)
+nf :: Expr ty b -> Maybe (Expr ty b)
 nf = \case
   e@Var{} -> Nothing -- or maybe Just e?
   e@Lam{} -> Just e
@@ -42,7 +42,7 @@ nf = \case
   e@False_{} -> Just e
   e@Zero{} -> Just e
   App f a -> whnf f >>= \case
-    Lam b body -> nf (instantiate1 a body)
+    Lam _ _ body -> nf (instantiate1 a body)
     _ -> Nothing
   Succ n -> whnf n >>= \case
     e@Succ{} -> Just (Succ e)

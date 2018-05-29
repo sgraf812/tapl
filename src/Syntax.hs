@@ -9,49 +9,51 @@
 module Syntax where
 
 import           Bound
-import           Data.Deriving        (deriveEq1, deriveOrd1, deriveRead1,
-                                       deriveShow1)
+import           Data.Deriving        (makeLiftEq, makeLiftCompare,
+                                       makeLiftReadsPrec, makeLiftShowsPrec)
 import           Data.Functor.Classes
 import           Data.Type.Equality
 import           Data.Void
 
-data Expr b
+data Expr ty b
   = Var b
-  | App (Expr b) (Expr b)
-  | Lam String (Scope () Expr b)
+  | App (Expr ty b) (Expr ty b)
+  | Lam String ty (Scope () (Expr ty) b)
   | True_
   | False_
-  | If (Expr b) (Expr b) (Expr b)
+  | If (Expr ty b) (Expr ty b) (Expr ty b)
   | Zero
-  | Succ (Expr b)
-  | Pred (Expr b)
-  | IsZero (Expr b)
+  | Succ (Expr ty b)
+  | Pred (Expr ty b)
+  | IsZero (Expr ty b)
   deriving (Functor, Foldable, Traversable)
 
 makeBound ''Expr
-deriveEq1 ''Expr
-deriveOrd1 ''Expr
-deriveShow1 ''Expr
-deriveRead1 ''Expr
+instance (Eq ty, Eq a) => Eq (Expr ty a) where (==) = eq1
+instance Eq ty => Eq1 (Expr ty) where liftEq = $(makeLiftEq ''Expr)
+instance (Ord ty, Ord a) => Ord (Expr ty a) where compare = compare1
+instance Ord ty => Ord1 (Expr ty) where liftCompare = $(makeLiftCompare ''Expr)
+instance (Read ty, Read a) => Read (Expr ty a) where readsPrec = readsPrec1 
+instance Read ty => Read1 (Expr ty) where liftReadsPrec = $(makeLiftReadsPrec ''Expr)
+instance (Show ty, Show a) => Show (Expr ty a) where showsPrec = showsPrec1 
+instance Show ty => Show1 (Expr ty) where liftShowsPrec = $(makeLiftShowsPrec ''Expr)
 
-instance Eq a => Eq (Expr a) where (==) = eq1
-instance Ord a => Ord (Expr a) where compare = compare1
-instance Read a => Read (Expr a) where readsPrec = readsPrec1
-instance Show a => Show (Expr a) where showsPrec = showsPrec1
-
-closed :: Expr b -> Maybe (Expr x)
+closed :: Expr ty b -> Maybe (Expr ty x)
 closed = Bound.closed
 
-isValue :: Expr Void -> Bool
+isValue :: Expr ty Void -> Bool
 isValue Lam{} = True
 isValue True_ = True
 isValue False_ = True
 isValue e = isNumericValue e
 
-isNumericValue :: Expr b -> Bool
+isNumericValue :: Expr ty b -> Bool
 isNumericValue Zero = True
 isNumericValue (Succ n) = isNumericValue n
 isNumericValue _ = False
+
+type UExpr b = Expr () b
+type TExpr b = Expr Type b
 
 data BaseType
   = TInt

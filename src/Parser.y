@@ -33,11 +33,11 @@ import           Token
 
 %%
 
-Expr :: { Expr String }
+Expr :: { UExpr String }
   : NoApp { $1 }
   | Expr NoApp %prec APP { App $1 $2 }
 
-NoApp :: { Expr String }
+NoApp :: { UExpr String }
   : '(' Expr ')' { $2 }
   | if Expr then Expr else Expr { If $2 $4 $6 }
   | true { True_ }
@@ -47,7 +47,7 @@ NoApp :: { Expr String }
   | is_zero NoApp { IsZero $2 }
   | var { Var $1 }
   | nat { iterate Succ Zero !! fromIntegral $1 }
-  | fun Vars1 "=>" Expr { foldr (\b e -> Lam b (abstract1 b e)) $4 $2 }
+  | fun Vars1 "=>" Expr { foldr (\b e -> Lam b () (abstract1 b e)) $4 $2 }
 
 Vars1 :: { [String] }
   : var       { [$1] }
