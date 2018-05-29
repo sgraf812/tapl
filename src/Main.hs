@@ -5,13 +5,14 @@ import           Syntax
 import           System.Console.Repline
 import Control.Monad.IO.Class
 import Data.List (isPrefixOf)
+import Eval (whnf)
 import Lexer (lex)
 import Parser (parse)
 
 type Repl a = HaskelineT IO a
 
 cmd :: String -> Repl ()
-cmd input = liftIO $ print (parse . lex $ input)
+cmd input = liftIO $ print (whnf . parse . lex $ input)
 
 completer :: Monad m => WordCompleter m
 completer n = do

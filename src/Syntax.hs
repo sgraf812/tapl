@@ -12,6 +12,8 @@ import           Bound
 import           Data.Deriving        (deriveEq1, deriveOrd1, deriveRead1,
                                        deriveShow1)
 import           Data.Functor.Classes
+import           Data.Type.Equality
+import           Data.Void
 
 data Expr b
   = Var b
@@ -36,3 +38,27 @@ instance Eq a => Eq (Expr a) where (==) = eq1
 instance Ord a => Ord (Expr a) where compare = compare1
 instance Read a => Read (Expr a) where readsPrec = readsPrec1
 instance Show a => Show (Expr a) where showsPrec = showsPrec1
+
+closed :: Expr b -> Maybe (Expr x)
+closed = Bound.closed
+
+isValue :: Expr Void -> Bool
+isValue Lam{} = True
+isValue True_ = True
+isValue False_ = True
+isValue e = isNumericValue e
+
+isNumericValue :: Expr b -> Bool
+isNumericValue Zero = True
+isNumericValue (Succ n) = isNumericValue n
+isNumericValue _ = False
+
+data BaseType
+  = TInt
+  | TBool
+  deriving (Eq, Show)
+
+data Type
+  = Arrow Type Type
+  | Base BaseType
+  deriving (Eq, Show)

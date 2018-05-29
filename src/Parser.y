@@ -28,16 +28,23 @@ import           Token
   '('             { TokenLParen }
   ')'             { TokenRParen }
 
+%right "then" "else"
+%left APP
+
 %%
 
 Expr :: { Expr String }
+  : NoApp { $1 }
+  | Expr NoApp %prec APP { App $1 $2 }
+
+NoApp :: { Expr String }
   : '(' Expr ')' { $2 }
   | if Expr then Expr else Expr { If $2 $4 $6 }
   | true { True_ }
   | false { False_ }
-  | succ Expr { Succ $2 }
-  | pred Expr { Pred $2 }
-  | is_zero Expr { IsZero $2 }
+  | succ NoApp { Succ $2 }
+  | pred NoApp { Pred $2 }
+  | is_zero NoApp { IsZero $2 }
   | var { Var $1 }
   | nat { iterate Succ Zero !! fromIntegral $1 }
   | fun Vars1 "=>" Expr { foldr (\b e -> Lam b (abstract1 b e)) $4 $2 }

@@ -19,7 +19,8 @@ executable tapl
   default-language:    Haskell2010
   build-tools:         alex
                      , happy
-  other-modules:       Lexer
+  other-modules:       Eval
+                     , Lexer
                      , Parser
                      , Syntax
                      , Token
