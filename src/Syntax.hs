@@ -9,8 +9,7 @@
 module Syntax where
 
 import           Bound
-import           Data.Deriving        (makeLiftEq, makeLiftCompare,
-                                       makeLiftReadsPrec, makeLiftShowsPrec)
+import           Data.Deriving
 import           Data.Functor.Classes
 import           Data.Type.Equality
 import           Data.Void
@@ -21,8 +20,7 @@ data Expr ty b
   | Lam String ty (Scope () (Expr ty) b)
   | True_
   | False_
-  | If (Expr ty b) (Expr ty b) (Expr ty b)
-  | Zero
+  | If (Expr ty b) (Expr ty b) (Expr ty b) | Zero
   | Succ (Expr ty b)
   | Pred (Expr ty b)
   | IsZero (Expr ty b)
@@ -52,15 +50,26 @@ isNumericValue Zero = True
 isNumericValue (Succ n) = isNumericValue n
 isNumericValue _ = False
 
-type UExpr b = Expr () b
-type TExpr b = Expr Type b
-
 data BaseType
   = TInt
   | TBool
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Read, Show)
 
-data Type
-  = Arrow Type Type
-  | Base BaseType
-  deriving (Eq, Show)
+data Type b
+  = Base BaseType
+  | Arrow (Type b) (Type b)
+  | TyVar b
+  deriving (Functor, Foldable, Traversable)
+
+makeBound ''Type
+deriveEq1 ''Type
+deriveOrd1 ''Type
+deriveRead1 ''Type
+deriveShow1 ''Type
+instance Eq b => Eq (Type b) where (==) = eq1
+instance Ord b => Ord (Type b) where compare = compare1
+instance Read b => Read (Type b) where readsPrec = readsPrec1
+instance Show b => Show (Type b) where showsPrec = showsPrec1 
+
+type UExpr b = Expr () b
+type TExpr tys b = Expr (Type tys) b
