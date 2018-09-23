@@ -15,6 +15,9 @@ data Token
   | TokenNat Natural
   | TokenVar String
   | TokenEqGt
+  | TokenMinusGt
+  | TokenColon
+  | TokenComma
   | TokenLParen
   | TokenRParen
   deriving (Eq, Show)

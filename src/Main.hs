@@ -8,11 +8,17 @@ import Data.List (isPrefixOf)
 import Eval (whnf)
 import Lexer (lex)
 import Parser (parse)
+import Constraints (constraints)
+import Unification (unify, applySubst)
 
 type Repl a = HaskelineT IO a
 
 cmd :: String -> Repl ()
-cmd input = liftIO $ print (whnf . parse . lex $ input)
+cmd input = liftIO $ print (fmap (\s -> applySubst s ty) res)
+  where
+    (ty, cs) = constraints (const (error "no type")). parse . lex $ input
+    res = unify cs
+
 
 completer :: Monad m => WordCompleter m
 completer n = do

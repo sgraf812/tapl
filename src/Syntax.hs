@@ -9,6 +9,7 @@
 module Syntax where
 
 import           Bound
+import           Bound.ScopeT
 import           Data.Deriving
 import           Data.Functor.Classes
 import           Data.Type.Equality
@@ -20,7 +21,8 @@ data Expr ty b
   | Lam String ty (Scope () (Expr ty) b)
   | True_
   | False_
-  | If (Expr ty b) (Expr ty b) (Expr ty b) | Zero
+  | If (Expr ty b) (Expr ty b) (Expr ty b)
+  | Zero
   | Succ (Expr ty b)
   | Pred (Expr ty b)
   | IsZero (Expr ty b)
@@ -50,16 +52,15 @@ isNumericValue Zero = True
 isNumericValue (Succ n) = isNumericValue n
 isNumericValue _ = False
 
-data BaseType
-  = TInt
-  | TBool
-  deriving (Eq, Ord, Read, Show)
-
 data Type b
-  = Base BaseType
+  = TyNat
+  | TyBool
   | Arrow (Type b) (Type b)
   | TyVar b
   deriving (Functor, Foldable, Traversable)
+
+type UExpr b = Expr () b
+type TExpr tys b = Expr (Type tys) b
 
 makeBound ''Type
 deriveEq1 ''Type
@@ -71,5 +72,7 @@ instance Ord b => Ord (Type b) where compare = compare1
 instance Read b => Read (Type b) where readsPrec = readsPrec1
 instance Show b => Show (Type b) where showsPrec = showsPrec1 
 
-type UExpr b = Expr () b
-type TExpr tys b = Expr (Type tys) b
+data Scheme g f b
+  = Poly (ScopeT () (Scheme g) f b)
+  | Mono (g b)
+  deriving (Functor, Foldable, Traversable)

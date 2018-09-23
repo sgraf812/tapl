@@ -24,6 +24,9 @@ tokens :-
   pred                            { \_ -> TokenPred }
   is_zero                         { \_ -> TokenIsZero }
   =>                              { \_ -> TokenEqGt }
+  \->                             { \_ -> TokenMinusGt }
+  :                               { \_ -> TokenColon }
+  \,                              { \_ -> TokenComma }
   \(                              { \_ -> TokenLParen }
   \)                              { \_ -> TokenRParen }
   [0-9]+                          { \s -> TokenNat (read s) }
